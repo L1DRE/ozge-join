@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>OZGE — набор в команду</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,600;0,700;0,800;0,900;1,800;1,900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #111110; --bg-2: #1a1a18; --line: #2b2b28; --ink: #f1ede4; --muted: #8d8a82;
+    --accent: #c8f03c; --accent-2: #ff6a3d; --on-accent: #111110; --danger: #ff5a4e;
+    --display: "Exo 2", system-ui, sans-serif; --body: "Manrope", system-ui, sans-serif;
+    --ease: cubic-bezier(.16,1,.3,1);
+  }
+  :root[data-theme="light"] {
+    --bg: #f3efe6; --bg-2: #e9e4d8; --line: #d3cdbf; --ink: #151513; --muted: #6d6a62;
+    --accent: #5a3df5; --accent-2: #ff5a26; --on-accent: #ffffff; --danger: #e03a2f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { overflow-x: clip; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased; transition: background .5s, color .5s; }
+  button, input, textarea { font: inherit; color: inherit; }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 0 16px calc(140px + env(safe-area-inset-bottom)); }
+  .hatch { background: repeating-linear-gradient(115deg, var(--accent) 0 3px, transparent 3px 7px); }
+
+  /* ---------- Экраны ---------- */
+  .screen { display: none; }
+  .screen.active { display: block; animation: rise .7s var(--ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Верхняя капсула ---------- */
+  .top { position: sticky; top: 0; z-index: 30; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 12px 0 10px; }
+  .cap { border: 1px solid var(--line); border-radius: 99px; background: color-mix(in srgb, var(--bg-2) 82%, transparent);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  .logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 900; font-style: italic;
+    font-size: 15px; letter-spacing: .02em; padding: 7px 16px 7px 8px; text-transform: uppercase; }
+  .logo i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+  .logo i svg { width: 15px; height: 15px; }
+  .pill { border: 1px solid var(--line); background: var(--bg-2); border-radius: 99px; height: 38px; padding: 0 14px;
+    font: 700 12px var(--body); letter-spacing: .08em; text-transform: uppercase; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: border-color .3s; }
+  .pill:active { border-color: var(--ink); }
+  .pill[hidden] { display: none; }
+
+  /* ---------- Метки и заголовки ---------- */
+  .label { display: flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+    font-weight: 800; margin-bottom: 18px; }
+  .label::before { content: ""; width: 22px; height: 14px; flex: none;
+    background: repeating-linear-gradient(115deg, var(--accent) 0 3px, transparent 3px 7px); }
+  .label b { font-family: var(--display); color: var(--accent); font-weight: 800; letter-spacing: .06em; }
+  .h2 { font-family: var(--display); font-weight: 800; font-size: clamp(32px, 9.5vw, 48px); line-height: .98; letter-spacing: -.03em; }
+  .lead { color: var(--muted); font-size: 16px; margin-top: 14px; }
+  section.block { padding-top: 64px; }
+
+  /* ---------- Hero ---------- */
+  .hero { position: relative; padding: 40px 0 8px; }
+  .hero__meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; margin-bottom: 18px; }
+  .hero__meta span { display: inline-flex; align-items: center; gap: 8px; }
+  .hero__meta span:first-child::before { content: ""; width: 18px; height: 11px;
+    background: repeating-linear-gradient(115deg, var(--accent) 0 3px, transparent 3px 7px); }
+  .hero__title { font-family: var(--display); font-weight: 900; font-style: italic; text-transform: uppercase; line-height: .86;
+    letter-spacing: -.025em; font-size: min(21vw, 118px); display: flex; align-items: flex-start; gap: .06em; }
+  .hero__lines { display: flex; flex-direction: column; min-width: 0; }
+  .hero__line { display: block; overflow: hidden; padding: 0 .08em .04em 0; }
+  .hero__line span { display: inline-block; transform: translateY(110%); transition: transform 1.1s var(--ease); }
+  .ready .hero__line span { transform: none; }
+  .ready .hero__line:nth-child(2) span { transition-delay: .08s; }
+  .hero__num { font-size: .13em; font-weight: 800; font-style: italic; letter-spacing: .08em; writing-mode: vertical-rl; color: var(--accent);
+    margin-top: .25em; opacity: 0; transition: opacity 1s .6s; white-space: nowrap; }
+  .ready .hero__num { opacity: 1; }
+  .hero__tag { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; margin-top: 24px; max-width: 340px; }
+  .hero__tag em { font-style: normal; color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .chip { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: 7px 11px; border-radius: 99px;
+    border: 1px solid var(--line); white-space: nowrap; }
+  .chip--win { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .chip--ctrl { border-color: var(--accent-2); color: var(--accent-2); }
+  .claws { position: absolute; right: -4px; top: 30px; height: 210px; width: 92px; display: flex; justify-content: space-between;
+    transform: rotate(16deg); pointer-events: none; opacity: .9; z-index: -1; }
+  .claws i { width: 16%; height: 100%; background: linear-gradient(to bottom, transparent, var(--accent) 18%, var(--accent) 70%, transparent);
+    clip-path: polygon(50% 0, 100% 30%, 55% 100%, 45% 100%, 0 30%); transform: scaleY(0); transform-origin: top; }
+  .claws i:nth-child(2) { margin-top: 10%; }
+  .ready .claws i { transform: scaleY(1); transition: transform .7s cubic-bezier(.7,0,.2,1); }
+  .ready .claws i:nth-child(1) { transition-delay: .35s; } .ready .claws i:nth-child(2) { transition-delay: .45s; } .ready .claws i:nth-child(3) { transition-delay: .55s; }
+
+  /* ---------- Бегущие ленты ---------- */
+  .tapes { position: relative; height: 130px; overflow: hidden; margin: 36px -16px 0; }
+  .tape { position: absolute; left: -8%; right: -8%; top: 50%; padding: 11px 0; white-space: nowrap; overflow: hidden;
+    font-family: var(--display); font-weight: 900; font-style: italic; font-size: 18px; text-transform: uppercase; letter-spacing: .03em; }
+  .tape--a { background: var(--accent); color: var(--on-accent); transform: translateY(-50%) rotate(-3deg); z-index: 2; }
+  .tape--b { background: var(--ink); color: var(--bg); transform: translateY(-50%) rotate(2.4deg); }
+  .tape__track { display: inline-flex; animation: marq 26s linear infinite; }
+  .tape--b .tape__track { animation-direction: reverse; animation-duration: 34s; }
+  .tape__track span { display: inline-flex; align-items: center; gap: 22px; padding-right: 22px; }
+  .tape__track span::after { content: "✦"; font-style: normal; }
+  @keyframes marq { to { transform: translateX(-50%); } }
+
+  /* ---------- Статистика ---------- */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); margin-top: 28px; }
+  .stat { padding: 22px 12px 22px 0; border-bottom: 1px solid var(--line); }
+  .stat + .stat { padding-left: 14px; border-left: 1px solid var(--line); }
+  .stat__n { font-family: var(--display); font-weight: 800; font-size: 44px; line-height: 1; }
+  .stat__n sup { font-size: .4em; color: var(--accent); vertical-align: top; margin-left: 2px; }
+  .stat__l { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* ---------- Карточки ролей ---------- */
+  .track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 28px -16px 0; padding: 0 16px 6px; scrollbar-width: none; }
+  .track::-webkit-scrollbar { display: none; }
+  .card { position: relative; flex: 0 0 78%; max-width: 300px; scroll-snap-align: start; border: 1px solid var(--line); border-radius: 20px;
+    padding: 22px; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg-2); overflow: hidden; }
+  .card__icon { width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; position: relative; }
+  .card__icon svg { width: 26px; height: 26px; }
+  .card__count { position: absolute; top: 16px; right: 20px; font-family: var(--display); font-weight: 900; font-size: 64px; line-height: 1;
+    color: transparent; -webkit-text-stroke: 1px var(--line); }
+  .card h3 { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.15; margin: 22px 0 8px; }
+  .card p { font-size: 14px; color: var(--muted); }
+
+  /* ---------- Пункты ---------- */
+  .points { margin-top: 28px; border-top: 1px solid var(--line); }
+  .point { display: grid; grid-template-columns: 40px 1fr; gap: 10px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .point small { font-family: var(--display); color: var(--accent); font-size: 13px; font-weight: 700; padding-top: 3px; }
+  .point b { display: block; font-size: 17px; margin-bottom: 3px; }
+  .point p { color: var(--muted); font-size: 14px; }
+
+  /* ---------- Нижняя панель ---------- */
+  .bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 62%, transparent); display: none; }
+  .bottom.on { display: block; }
+  .bottom .in { max-width: 528px; margin: 0 auto; display: flex; gap: 8px; }
+  .btn { flex: 1; display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; height: 56px; padding: 0 8px 0 24px;
+    border: 0; border-radius: 99px; background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 15px; cursor: pointer;
+    transition: transform .3s var(--ease); }
+  .btn:active { transform: scale(.97); }
+  .btn .arr { width: 40px; height: 40px; border-radius: 50%; background: var(--on-accent); color: var(--accent); display: grid; place-items: center;
+    transition: transform .5s var(--ease); flex: none; }
+  .btn:active .arr { transform: rotate(-45deg); }
+  .btn .arr svg { width: 18px; height: 18px; }
+  .btn.ghost { flex: 0 0 auto; background: var(--bg-2); color: var(--ink); border: 1px solid var(--line); padding: 0 20px; justify-content: center; }
+
+  /* ---------- Тест ---------- */
+  .q-head { padding-top: 28px; }
+  .bars { display: flex; gap: 4px; margin: 4px 0 26px; }
+  .bars i { flex: 1; height: 3px; background: var(--line); transition: background .4s; }
+  .bars i.on { background: var(--accent); }
+  .ev { display: grid; grid-template-columns: 30px 1fr 40px; gap: 12px; align-items: center; padding: 20px 0; border: 0;
+    border-top: 1px solid var(--line); width: 100%; background: none; text-align: left; cursor: pointer; position: relative; }
+  .ev:last-child { border-bottom: 1px solid var(--line); }
+  .ev::after { content: ""; position: absolute; left: 0; bottom: -1px; height: 1px; width: 100%; background: var(--accent);
+    transform: scaleX(0); transform-origin: left; transition: transform .7s var(--ease); }
+  .ev__i { font-family: var(--display); font-size: 13px; color: var(--muted); font-weight: 700; }
+  .ev__name { font-family: var(--display); font-weight: 600; font-size: 19px; line-height: 1.2; transition: transform .5s var(--ease), color .3s; }
+  .ev__arrow { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center;
+    transition: background .4s, transform .5s var(--ease), border-color .4s, color .4s; }
+  .ev__arrow svg { width: 16px; height: 16px; }
+  .ev.picked::after { transform: scaleX(1); }
+  .ev.picked .ev__name { transform: translateX(8px); color: var(--accent); }
+  .ev.picked .ev__arrow { background: var(--accent); border-color: var(--accent); color: var(--on-accent); transform: rotate(-45deg); }
+
+  /* ---------- Результат ---------- */
+  .result { position: relative; padding-top: 34px; }
+  .ghost-word { position: absolute; left: -16px; right: -16px; top: 84px; text-align: center; font-family: var(--display); font-weight: 900; font-style: italic;
+    text-transform: uppercase; font-size: 26vw; line-height: .8; letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 1.5px var(--line);
+    white-space: nowrap; overflow: hidden; pointer-events: none; z-index: -1; }
+  .r-icon { width: 92px; height: 92px; border-radius: 24px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center;
+    margin: 18px 0 22px; transform: rotate(-6deg); animation: stamp .8s var(--ease); position: relative; overflow: hidden; }
+  .r-icon::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(0,0,0,.09) 0 8px, transparent 8px 20px); }
+  .r-icon svg { width: 46px; height: 46px; position: relative; }
+  @keyframes stamp { from { transform: rotate(10deg) scale(.5); opacity: 0; } to { transform: rotate(-6deg); opacity: 1; } }
+  .r-title { font-family: var(--display); font-weight: 900; font-style: italic; text-transform: uppercase; font-size: clamp(40px, 12vw, 64px);
+    line-height: .9; letter-spacing: -.03em; }
+  .specgrid { display: grid; gap: 10px; margin-top: 26px; }
+  .spec { position: relative; border: 1px solid var(--line); border-radius: 18px; padding: 18px 18px 18px 64px; background: var(--bg-2); }
+  .spec small { position: absolute; left: 18px; top: 16px; font-family: var(--display); font-weight: 900; font-size: 26px; color: var(--accent); line-height: 1; }
+  .spec b { font-size: 16px; font-weight: 700; }
+  .meter { padding: 14px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .meter:first-child { border-top: 1px solid var(--line); }
+  .meter b { font-family: var(--display); font-weight: 700; font-size: 16px; }
+  .meter span { font-family: var(--display); font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .meter.top span { color: var(--accent); }
+  .meter .t { grid-column: 1 / -1; height: 4px; background: var(--line); overflow: hidden; }
+  .meter .t i { display: block; height: 100%; width: 0; background: var(--muted); transition: width 1s var(--ease); }
+  .meter.top .t i { background: var(--accent); }
+
+  /* ---------- Анкета ---------- */
+  .fgroup { margin-top: 30px; }
+  .fgroup.shake { animation: shake .45s; }
+  @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+  .flabel { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    font-weight: 800; margin-bottom: 10px; }
+  .flabel b { font-family: var(--display); color: var(--accent); margin-right: 8px; }
+  .flabel span { color: var(--muted); letter-spacing: .04em; text-transform: none; font-weight: 600; }
+  .input { width: 100%; border: 1px solid var(--line); background: var(--bg-2); border-radius: 16px; padding: 15px 16px; outline: none;
+    font-size: 16px; transition: border-color .3s; }
+  .input + .input { margin-top: 8px; }
+  .input::placeholder { color: var(--muted); }
+  .input:focus { border-color: var(--accent); }
+  textarea.input { min-height: 120px; resize: none; display: block; }
+  .bad .input, .bad .opt-row, .bad .pickers .chip-btn { border-color: var(--danger); }
+  .pickers { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip-btn { border: 1px solid var(--line); background: var(--bg-2); border-radius: 99px; padding: 11px 16px; font-size: 13px; font-weight: 800;
+    letter-spacing: .04em; text-transform: uppercase; cursor: pointer; transition: all .3s var(--ease); }
+  .chip-btn.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .pickers.days .chip-btn { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; font-size: 12px; }
+  .opt-list { display: grid; gap: 8px; }
+  .opt-row { display: grid; grid-template-columns: 40px 1fr 22px; gap: 12px; align-items: center; border: 1px solid var(--line); background: var(--bg-2);
+    border-radius: 16px; padding: 10px 14px 10px 10px; cursor: pointer; text-align: left; width: 100%; transition: border-color .3s, transform .4s var(--ease); }
+  .opt-row .ic { width: 40px; height: 40px; border-radius: 11px; background: var(--line); display: grid; place-items: center; transition: background .3s, color .3s; }
+  .opt-row .ic svg { width: 20px; height: 20px; }
+  .opt-row b { font-family: var(--display); font-weight: 700; font-size: 16px; }
+  .opt-row .dot { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line); transition: all .3s; }
+  .opt-row.on { border-color: var(--accent); }
+  .opt-row.on .ic { background: var(--accent); color: var(--on-accent); }
+  .opt-row.on .dot { border: 7px solid var(--accent); }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .hint em { font-style: normal; color: var(--accent); font-weight: 700; }
+  .err { color: var(--danger); font-size: 13px; font-weight: 700; margin-top: 20px; min-height: 1em; }
+
+  /* ---------- Готово ---------- */
+  .done { padding-top: 12vh; }
+  .done svg.ok { width: 84px; height: 84px; }
+  .done circle { stroke-dasharray: 290; stroke-dashoffset: 290; animation: draw .7s .1s ease-out forwards; }
+  .done path { stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw .4s .7s ease-out forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  pre.demo { background: var(--bg-2); border: 1px solid var(--line); border-radius: 16px; padding: 14px; font: 12px/1.5 ui-monospace, Menlo, monospace;
+    overflow-x: auto; white-space: pre-wrap; word-break: break-word; margin-top: 24px; color: var(--muted); }
+
+  /* ---------- Тигр, фото ---------- */
+  .mark { display: inline-block; background: var(--accent); -webkit-mask: url(assets/tiger-mask.png) center/contain no-repeat;
+    mask: url(assets/tiger-mask.png) center/contain no-repeat; aspect-ratio: 614/481; }
+  .logo .mark { width: 34px; }
+  .hero__tiger { position: absolute; left: -34vw; top: 34%; width: 125vw; max-width: 760px; aspect-ratio: 614/481; transform: scaleX(-1);
+    z-index: -2; pointer-events: none; opacity: 0; transition: opacity 2s ease .6s; }
+  .ready .hero__tiger { opacity: .05; }
+  .hero__tiger i { display: block; width: 100%; height: 100%; background: var(--ink); -webkit-mask: url(assets/tiger-mask.png) center/contain no-repeat;
+    mask: url(assets/tiger-mask.png) center/contain no-repeat; animation: float 9s ease-in-out infinite; }
+  @keyframes float { 50% { transform: translateY(-14px) rotate(-1.5deg); } }
+  .group { position: relative; margin-top: 40px; padding-top: 12vw; overflow: hidden; }
+  .group__word { position: absolute; inset: 0 0 auto; text-align: center; font-family: var(--display); font-weight: 900; font-style: italic;
+    font-size: 30vw; line-height: .8; letter-spacing: -.05em; color: transparent; -webkit-text-stroke: 1.5px var(--line); user-select: none; }
+  .group__img { position: relative; width: 100%; max-width: 460px; margin: 0 auto; }
+  .group__img::before { content: ""; position: absolute; left: 8%; right: 8%; bottom: 0; height: 62%; background: var(--accent);
+    border-radius: 40px 40px 0 0; z-index: -1; }
+  .group__img img { width: 100%; display: block; position: relative; }
+  .robot-card { position: relative; margin-top: 28px; border-radius: 26px; overflow: hidden; aspect-ratio: 917/1100; background: #0d0f14; }
+  .robot-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .robot-card figcaption { position: absolute; left: 14px; top: 14px; font: 800 11px var(--body); letter-spacing: .16em; text-transform: uppercase;
+    padding: 8px 12px; border-radius: 99px; background: var(--accent); color: var(--on-accent); }
+  .specs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; }
+    .hero__line span { transform: none; } .hero__num { opacity: 1; } .claws i { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="cap logo"><span class="mark"></span><span id="logo-name"></span></div>
+    <button class="cap pill" id="back-btn" hidden onclick="back()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>Назад
+    </button>
+  </header>
+
+  <!-- ===== ГЛАВНАЯ ===== -->
+  <section class="screen active" id="s-home">
+    <div class="hero">
+      <div class="hero__tiger"><i></i></div>
+      <div class="claws"><i></i><i></i><i></i></div>
+      <div class="hero__meta"><span>First Tech Challenge</span><span id="meta-college"></span></div>
+      <h1 class="hero__title"><span class="hero__lines" id="hero-lines"></span><span class="hero__num" id="hero-num"></span></h1>
+      <p class="hero__tag" id="hero-tag"></p>
+      <div class="chips" id="hero-chips"></div>
+    </div>
+
+    <div class="tapes">
+      <div class="tape tape--b"><div class="tape__track" id="tape-b"></div></div>
+      <div class="tape tape--a"><div class="tape__track" id="tape-a"></div></div>
+    </div>
+
+    <section class="block">
+      <div class="label"><b>01</b>— О команде</div>
+      <h2 class="h2" id="about-title"></h2>
+      <p class="lead" id="about-lead"></p>
+      <div class="stats" id="stats"></div>
+      <div class="group">
+        <div class="group__word" id="group-word"></div>
+        <div class="group__img"><img src="assets/team.webp" alt="Команда" loading="lazy"></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="label"><b>02</b>— Наш робот</div>
+      <h2 class="h2" id="robot-title"></h2>
+      <p class="lead" id="robot-lead"></p>
+      <div class="specs" id="robot-specs"></div>
+      <figure class="robot-card"><img src="assets/robot-cover.webp" alt="Робот команды" loading="lazy"><figcaption id="robot-cap"></figcaption></figure>
+    </section>
+
+    <section class="block">
+      <div class="label"><b>03</b>— Кого ищем</div>
+      <h2 class="h2">Пять ролей.<br>Одна команда.</h2>
+      <p class="lead">Опыт не нужен — всему научим. Нужны желание и время.</p>
+      <div class="track" id="roles"></div>
+    </section>
+
+    <section class="block">
+      <div class="label"><b>04</b>— Что тебя ждёт</div>
+      <h2 class="h2">Больше, чем кружок</h2>
+      <div class="points" id="points"></div>
+    </section>
+  </section>
+
+  <!-- ===== ТЕСТ ===== -->
+  <section class="screen" id="s-quiz">
+    <div class="q-head">
+      <div class="label" id="q-num"></div>
+      <div class="bars" id="q-bars"></div>
+      <h2 class="h2" id="q-text"></h2>
+    </div>
+    <div id="q-opts" style="margin-top:26px"></div>
+  </section>
+
+  <!-- ===== РЕЗУЛЬТАТ ===== -->
+  <section class="screen" id="s-result">
+    <div class="result">
+      <div class="ghost-word" id="r-ghost"></div>
+      <div class="label"><b>✓</b>— Твоя роль</div>
+      <div class="r-icon" id="r-icon"></div>
+      <h1 class="r-title" id="r-title"></h1>
+      <p class="lead" id="r-desc"></p>
+      <div class="specgrid" id="r-tasks"></div>
+      <section class="block" style="padding-top:44px">
+        <div class="label"><b>%</b>— Совпадение</div>
+        <div id="r-meters"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===== АНКЕТА ===== -->
+  <section class="screen" id="s-form">
+    <div style="padding-top:28px">
+      <div class="label"><b>→</b>— Заявка</div>
+      <h2 class="h2">Заполни анкету</h2>
+      <p class="lead">Займёт пару минут. Капитан ответит в Telegram.</p>
+    </div>
+
+    <div class="fgroup" id="g-name">
+      <div class="flabel"><div><b>01</b>О тебе</div></div>
+      <input class="input" id="f-name" autocomplete="name" placeholder="Имя и фамилия">
+      <input class="input" id="f-group" placeholder="Специальность / группа, напр. ВТ-24">
+    </div>
+
+    <div class="fgroup" id="g-course">
+      <div class="flabel"><div><b>02</b>Курс</div></div>
+      <div class="pickers" id="f-course"></div>
+    </div>
+
+    <div class="fgroup" id="g-role">
+      <div class="flabel"><div><b>03</b>Роль</div></div>
+      <div class="opt-list" id="f-role"></div>
+      <p class="hint" id="role-hint"></p>
+    </div>
+
+    <div class="fgroup">
+      <div class="flabel"><div><b>04</b>Опыт</div></div>
+      <div class="pickers" id="f-exp"></div>
+    </div>
+
+    <div class="fgroup">
+      <div class="flabel"><div><b>05</b>Свободные дни</div></div>
+      <div class="pickers days" id="f-days"></div>
+    </div>
+
+    <div class="fgroup" id="g-why">
+      <div class="flabel"><div><b>06</b>Почему к нам</div><span id="why-count">0 / 600</span></div>
+      <textarea class="input" id="f-why" maxlength="600" placeholder="Пара предложений о себе и о том, что тебя цепляет в робототехнике"></textarea>
+    </div>
+
+    <p class="err" id="f-err"></p>
+  </section>
+
+  <!-- ===== ГОТОВО ===== -->
+  <section class="screen" id="s-done">
+    <div class="done">
+      <svg class="ok" viewBox="0 0 100 100" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="50" cy="50" r="44"/><path d="M30 52l13 13 27-29"/>
+      </svg>
+      <h1 class="r-title" style="margin-top:24px">Заявка<br>улетела</h1>
+      <p class="lead">Мы рассмотрим её и напишем тебе в Telegram. Статус — команда /status в боте.</p>
+      <div id="demo-box"></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="bottom" id="bottom"><div class="in" id="bottom-in"></div></div>
+
+<script>
+/* ===================== НАСТРОЙКИ КОМАНДЫ — ЗАМЕНИТЕ НА СВОИ ===================== */
+const TEAM = {
+  name: "OZGE",                      // одно-два слова — выводится огромным заголовком
+  number: "TEAM #34350",
+  college: "Astana · KZ",
+  tag: 'Басқаға ұқсама. Набор в команду для студентов <em>Астана Политеха</em>.',
+  chips: [["Набор открыт", "win"], ["2× Control Award", ""], ["Winning Alliance", ""]],
+  aboutTitle: "Өзге — значит «другой».",
+  aboutLead: "OZGE #34350 — команда FIRST Tech Challenge из Астаны, основанная в 2025 году. Мы строим роботов не по шаблону. За два сезона — шесть официальных турниров, две Control Award и победа капитанами альянса.",
+  stats: [
+    { value: "6", sup: "", label: "официальных турниров" },
+    { value: "5", sup: "", label: "наград" },
+    { value: "2", sup: "×", label: "Control Award" },
+  ],
+  groupWord: "TEAM",
+  robotTitle: "Внутри робота",
+  robotLead: "Mecanum X-drive, одометрия Pinpoint, шутер после трёх прототипов и PID-автономка для обеих стартовых позиций. Будешь собирать и программировать такое же.",
+  robotSpecs: ["Mecanum", "goBILDA 435 RPM", "Pinpoint", "Dead Wheels", "PID"],
+  robotCap: "DECODE · 2025–26",
+  points: [
+    { title: "Турниры по Казахстану", text: "IQanat FIRST Regional, Daryn Robotics Cup, Almaty Tech Cup и другие." },
+    { title: "Четыре ментора", text: "Инженерия, программирование и медиа — учиться есть у кого." },
+    { title: "Outreach", text: "Волонтёрство на FIRST Global Challenge Central Asia, занятия по робототехнике для детей." },
+    { title: "Цель — чемпионат мира", text: "Inspire Award, квалификация на Worlds и победа на FTC World Championship к 2029." },
+  ],
+  tapeA: ["Набор 2026", "Басқаға ұқсама", "Механики", "Программисты", "CAD", "Медиа", "Outreach"],
+  tapeB: ["Astana", "FTC 34350", "Control Award ×2", "Winning Alliance", "Think · Build · Innovate"],
+};
+
+const ROLES = {
+  mech:     { icon: "wrench", title: "Механик", short: "Собирает робота: шасси, механизмы, ремонт на соревнованиях.",
+              desc: "Превращаешь идеи в железо. Без механиков робот — просто чертёж.",
+              tasks: ["Собирать шасси и механизмы", "Работать с инструментом и 3D-принтером", "Чинить робота прямо на соревнованиях"] },
+  prog:     { icon: "code",   title: "Программист", short: "Java, автономный режим, датчики и компьютерное зрение.",
+              desc: "Оживляешь робота: управление, автономный режим, датчики и камера.",
+              tasks: ["Писать код на Java в Android Studio", "Делать автономку и работать с датчиками", "Подключать компьютерное зрение"] },
+  cad:      { icon: "cube",   title: "CAD-дизайнер", short: "Проектирует робота в Onshape и Fusion 360.",
+              desc: "Проектируешь робота в 3D ещё до того, как его соберут.",
+              tasks: ["Моделировать в Onshape / Fusion 360", "Готовить детали к 3D-печати и резке", "Искать лучшие конструкторские решения"] },
+  media:    { icon: "camera", title: "Медиа", short: "Соцсети, видео, дизайн и инженерное портфолио.",
+              desc: "Ты — лицо команды: стиль, соцсети, видео и портфолио.",
+              tasks: ["Вести соцсети и снимать видео", "Делать дизайн: лого, мерч, стенд", "Оформлять инженерное портфолио"] },
+  outreach: { icon: "people", title: "Outreach", short: "Спонсоры, мероприятия, выступления перед судьями.",
+              desc: "Связываешь команду с миром: спонсоры, мероприятия, выступления.",
+              tasks: ["Искать спонсоров и партнёров", "Проводить мастер-классы для школьников", "Защищать проект перед судьями"] },
+};
+
+const QUIZ = [
+  { q: "Что тебе интереснее всего?", a: [
+    ["Собирать и чинить вещи руками", "mech"], ["Разбираться, как работают программы", "prog"],
+    ["Моделировать и проектировать в 3D", "cad"], ["Снимать видео и делать дизайн", "media"],
+    ["Общаться с людьми и организовывать", "outreach"] ] },
+  { q: "Какие пары нравятся больше?", a: [
+    ["Практика в мастерских", "mech"], ["Программирование и алгоритмы", "prog"],
+    ["Инженерная графика и черчение", "cad"], ["Всё, где можно проявить креатив", "media"],
+    ["Где нужно выступать и защищать проекты", "outreach"] ] },
+  { q: "Робот сломался за 10 минут до матча. Ты…", a: [
+    ["Хватаю инструменты и чиню", "mech"], ["Проверяю код и логи", "prog"],
+    ["Думаю, как переделать деталь", "cad"], ["Снимаю этот момент для сторис", "media"],
+    ["Договариваюсь с судьями", "outreach"] ] },
+  { q: "Свободный вечер — ты…", a: [
+    ["Мастеришь или разбираешь технику", "mech"], ["Пишешь код или решаешь задачки", "prog"],
+    ["Строишь что-то в 3D", "cad"], ["Монтируешь ролики", "media"],
+    ["На ивенте с друзьями", "outreach"] ] },
+  { q: "Чему хочешь научиться за год?", a: [
+    ["Собирать сложные механизмы", "mech"], ["Писать автономку с компьютерным зрением", "prog"],
+    ["Профессионально проектировать в CAD", "cad"], ["Делать контент на тысячи просмотров", "media"],
+    ["Выступать и находить спонсоров", "outreach"] ] },
+  { q: "За что тебя обычно хвалят?", a: [
+    ["Золотые руки", "mech"], ["Логика и упорство", "prog"], ["Аккуратность и воображение", "cad"],
+    ["Вкус и креатив", "media"], ["Договорюсь с кем угодно", "outreach"] ] },
+];
+
+const COURSES = [["1", "1 курс"], ["2", "2 курс"], ["3", "3 курс"], ["4", "4 курс"]];
+const EXPS = [["none", "Нет опыта"], ["some", "Немного"], ["yes", "Был(а) в команде"]];
+const DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+/* ============================================================================== */
+
+const ICONS = {
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.2 5.2L3.6 17.4a1.6 1.6 0 0 0 2.3 2.3l5.9-5.9a4 4 0 0 0 5.2-5.2l-2.5 2.5-2.3-.6-.6-2.3z"/>',
+  code:   '<path d="M8.5 7 3.5 12l5 5M15.5 7l5 5-5 5M13.5 4.5l-3 15"/>',
+  cube:   '<path d="M12 2.8 20.2 7.4v9.2L12 21.2l-8.2-4.6V7.4z"/><path d="M3.8 7.4 12 12l8.2-4.6M12 12v9.2"/>',
+  camera: '<path d="M4 7.5h3l1.8-2.5h6.4L17 7.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.6"/>',
+  people: '<circle cx="9" cy="8" r="3.2"/><path d="M2.8 19.5c.4-3.3 3-5.5 6.2-5.5s5.8 2.2 6.2 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.1c2.6.1 4.4 2 4.7 4.9"/>',
+  robot:  '<rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4.5V8M9.5 13h.01M14.5 13h.01M9.5 16.2h5"/><circle cx="12" cy="4" r="1.2"/>',
+  arrow:  '<path d="M5 12h14M13 6l6 6-6 6"/>',
+};
+const svg = (n, sw = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]}</svg>`;
+const pad = (n) => String(n).padStart(2, "0");
+
+/* ---------- Telegram и тема ---------- */
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTelegram = !!(tg && tg.initData);
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const tap = () => { try { tg.HapticFeedback.selectionChanged(); } catch (e) {} };
+const notify = (t) => { try { tg.HapticFeedback.notificationOccurred(t); } catch (e) {} };
+
+function applyTheme() {
+  const light = inTelegram ? tg.colorScheme === "light" : matchMedia("(prefers-color-scheme: light)").matches;
+  document.documentElement.dataset.theme = light ? "light" : "dark";
+  if (inTelegram) {
+    const c = light ? "#f3efe6" : "#111110";
+    try { tg.setHeaderColor(c); tg.setBackgroundColor(c); tg.setBottomBarColor && tg.setBottomBarColor(c); } catch (e) {}
+  }
+}
+applyTheme();
+matchMedia("(prefers-color-scheme: light)").addEventListener("change", applyTheme);
+if (tg) { tg.ready(); tg.expand(); tg.onEvent && tg.onEvent("themeChanged", applyTheme); }
+
+/* ---------- Навигация ---------- */
+const stack = [];
+function show(id, push = true) {
+  const cur = document.querySelector(".screen.active");
+  if (push && cur && cur.id !== id) stack.push(cur.id);
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === id));
+  window.scrollTo(0, 0);
+  const canBack = stack.length > 0 && id !== "s-done";
+  $("back-btn").hidden = inTelegram || !canBack;
+  if (tg && tg.BackButton) canBack ? tg.BackButton.show() : tg.BackButton.hide();
+  renderBottom(id);
+}
+function back() {
+  if (quiz.active && quiz.i > 0) { quiz.i--; renderQuestion(); return; }
+  quiz.active = false;
+  const prev = stack.pop();
+  if (prev) show(prev, false);
+}
+if (tg && tg.BackButton) tg.BackButton.onClick(back);
+
+const ARR = `<span class="arr">${svg("arrow", 2.4)}</span>`;
+function renderBottom(id) {
+  const map = {
+    "s-home":   `<button class="btn" onclick="startQuiz()">Узнать свою роль ${ARR}</button>
+                 <button class="btn ghost" onclick="openForm()">Анкета</button>`,
+    "s-result": `<button class="btn" onclick="openForm(quiz.result)">Подать заявку ${ARR}</button>
+                 <button class="btn ghost" onclick="startQuiz()">Заново</button>`,
+    "s-form":   `<button class="btn" onclick="submitForm()">Отправить заявку ${ARR}</button>`,
+  };
+  $("bottom-in").innerHTML = map[id] || "";
+  $("bottom").classList.toggle("on", !!map[id]);
+}
+
+/* ---------- Главная ---------- */
+function renderHome() {
+  $("logo-name").textContent = TEAM.name;
+  $("group-word").textContent = TEAM.groupWord;
+  $("robot-title").textContent = TEAM.robotTitle;
+  $("robot-lead").textContent = TEAM.robotLead;
+  $("robot-specs").innerHTML = TEAM.robotSpecs.map(s => `<span class="chip">${esc(s)}</span>`).join("");
+  $("robot-cap").textContent = TEAM.robotCap;
+  $("meta-college").textContent = TEAM.college;
+  $("hero-lines").innerHTML = TEAM.name.split(/\s+/).map(w => `<span class="hero__line"><span>${esc(w)}</span></span>`).join("");
+  $("hero-num").textContent = TEAM.number;
+  $("hero-tag").innerHTML = TEAM.tag;
+  $("hero-chips").innerHTML = TEAM.chips.map(([t, k]) => `<span class="chip ${k ? "chip--" + k : ""}">${esc(t)}</span>`).join("");
+  const tape = (arr) => { const s = arr.map(t => `<span>${esc(t)}</span>`).join(""); return s + s + s + s; };
+  $("tape-a").innerHTML = tape(TEAM.tapeA);
+  $("tape-b").innerHTML = tape(TEAM.tapeB);
+  $("about-title").textContent = TEAM.aboutTitle;
+  $("about-lead").textContent = TEAM.aboutLead;
+  $("stats").innerHTML = TEAM.stats.map(s =>
+    `<div class="stat"><div class="stat__n">${esc(s.value)}${s.sup ? `<sup>${esc(s.sup)}</sup>` : ""}</div><div class="stat__l">${esc(s.label)}</div></div>`).join("");
+  $("roles").innerHTML = Object.values(ROLES).map((r, i) =>
+    `<div class="card"><span class="card__count">${pad(i + 1)}</span><div class="card__icon">${svg(r.icon)}</div>
+      <div><h3>${esc(r.title)}</h3><p>${esc(r.short)}</p></div></div>`).join("");
+  $("points").innerHTML = TEAM.points.map((p, i) =>
+    `<div class="point"><small>${pad(i + 1)}</small><div><b>${esc(p.title)}</b><p>${esc(p.text)}</p></div></div>`).join("");
+}
+
+/* ---------- Тест ---------- */
+const quiz = { i: 0, answers: [], active: false, result: null };
+const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function startQuiz() {
+  quiz.i = 0; quiz.answers = []; quiz.active = true;
+  if (document.querySelector(".screen.active").id === "s-result") stack.pop();
+  show("s-quiz");
+  renderQuestion();
+}
+function renderQuestion() {
+  const item = QUIZ[quiz.i];
+  $("q-num").innerHTML = `<b>${pad(quiz.i + 1)}</b>— Вопрос из ${pad(QUIZ.length)}`;
+  $("q-bars").innerHTML = QUIZ.map((_, i) => `<i class="${i <= quiz.i ? "on" : ""}"></i>`).join("");
+  $("q-text").textContent = item.q;
+  const opts = $("q-opts");
+  opts.innerHTML = "";
+  shuffle(item.a).forEach(([text, role], i) => {
+    const b = document.createElement("button");
+    b.className = "ev" + (quiz.answers[quiz.i] === role ? " picked" : "");
+    b.innerHTML = `<span class="ev__i">${"ABCDE"[i]}</span><span class="ev__name">${esc(text)}</span><span class="ev__arrow">${svg("arrow", 2)}</span>`;
+    b.onclick = () => pick(role, b);
+    opts.appendChild(b);
+  });
+  const s = $("s-quiz"); s.classList.remove("active"); void s.offsetWidth; s.classList.add("active");
+}
+function pick(role, el) {
+  tap();
+  $("q-opts").querySelectorAll(".ev").forEach(c => c.classList.remove("picked"));
+  el.classList.add("picked");
+  quiz.answers[quiz.i] = role;
+  setTimeout(() => { if (quiz.i < QUIZ.length - 1) { quiz.i++; renderQuestion(); } else finishQuiz(); }, 420);
+}
+function finishQuiz() {
+  quiz.active = false;
+  const scores = Object.fromEntries(Object.keys(ROLES).map(k => [k, 0]));
+  quiz.answers.forEach(r => scores[r]++);
+  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  const best = sorted[0][0];
+  quiz.result = best;
+  const r = ROLES[best];
+  $("r-ghost").textContent = r.title;
+  $("r-icon").innerHTML = svg(r.icon, 1.8);
+  $("r-title").textContent = r.title;
+  $("r-desc").textContent = r.desc;
+  $("r-tasks").innerHTML = r.tasks.map((t, i) => `<div class="spec"><small>${pad(i + 1)}</small><b>${esc(t)}</b></div>`).join("");
+  $("r-meters").innerHTML = sorted.map(([k, v], i) => {
+    const pct = Math.round(v / QUIZ.length * 100);
+    return `<div class="meter ${i === 0 ? "top" : ""}"><b>${esc(ROLES[k].title)}</b><span>${pct}%</span><div class="t"><i data-w="${pct}"></i></div></div>`;
+  }).join("");
+  notify("success");
+  show("s-result", false);
+  setTimeout(() => $("r-meters").querySelectorAll("i[data-w]").forEach(i => i.style.width = i.dataset.w + "%"), 300);
+}
+
+/* ---------- Анкета ---------- */
+const form = { course: "", exp: "none", role: "", days: new Set() };
+
+function buildPicker(el, items, key) {
+  el.innerHTML = items.map(([v, t]) => `<button type="button" class="chip-btn" data-v="${v}">${esc(t)}</button>`).join("");
+  el.addEventListener("click", (e) => {
+    const b = e.target.closest(".chip-btn"); if (!b) return;
+    tap(); form[key] = b.dataset.v; syncPicker(el, key); $("g-" + key)?.classList.remove("bad");
+  });
+  syncPicker(el, key);
+}
+function syncPicker(el, key) { el.querySelectorAll(".chip-btn").forEach(b => b.classList.toggle("on", b.dataset.v === form[key])); }
+
+function buildRoleList() {
+  const items = [...Object.entries(ROLES), ["any", { icon: "robot", title: "Пока не знаю" }]];
+  $("f-role").innerHTML = items.map(([k, r]) =>
+    `<button type="button" class="opt-row" data-v="${k}"><span class="ic">${svg(r.icon)}</span><b>${esc(r.title)}</b><span class="dot"></span></button>`).join("");
+  $("f-role").addEventListener("click", (e) => {
+    const b = e.target.closest(".opt-row"); if (!b) return;
+    tap(); form.role = b.dataset.v; syncRole(); $("g-role").classList.remove("bad");
+  });
+}
+function syncRole() {
+  $("f-role").querySelectorAll(".opt-row").forEach(c => c.classList.toggle("on", c.dataset.v === form.role));
+  $("role-hint").innerHTML = quiz.result ? `По тесту тебе подходит <em>${esc(ROLES[quiz.result].title)}</em>` : "";
+}
+function buildDays() {
+  $("f-days").innerHTML = DAYS.map(d => `<button type="button" class="chip-btn" data-v="${d}">${d}</button>`).join("");
+  $("f-days").addEventListener("click", (e) => {
+    const b = e.target.closest(".chip-btn"); if (!b) return;
+    tap(); form.days.has(b.dataset.v) ? form.days.delete(b.dataset.v) : form.days.add(b.dataset.v);
+    b.classList.toggle("on", form.days.has(b.dataset.v));
+  });
+}
+
+function openForm(role) {
+  if (role) form.role = role;
+  else if (quiz.result && !form.role) form.role = quiz.result;
+  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  if (u && !$("f-name").value) $("f-name").value = [u.first_name, u.last_name].filter(Boolean).join(" ");
+  show("s-form");
+  syncRole();
+}
+
+function submitForm() {
+  const name = $("f-name").value.trim();
+  const why = $("f-why").value.trim();
+  const bad = [];
+  if (name.length < 2) bad.push("g-name");
+  if (!form.course) bad.push("g-course");
+  if (!form.role) bad.push("g-role");
+  if (why.length < 10) bad.push("g-why");
+  document.querySelectorAll(".fgroup").forEach(g => g.classList.remove("bad", "shake"));
+  if (bad.length) {
+    bad.forEach(id => { const g = $(id); g.classList.add("bad"); void g.offsetWidth; g.classList.add("shake"); });
+    $("f-err").textContent = (bad.length === 1 && bad[0] === "g-why" && why.length)
+      ? "Напиши чуть подробнее, почему хочешь в команду"
+      : "Заполни поля, выделенные красным";
+    $(bad[0]).scrollIntoView({ behavior: "smooth", block: "center" });
+    notify("error");
+    return;
+  }
+  $("f-err").textContent = "";
+
+  const payload = {
+    v: 2,
+    name: name.slice(0, 80),
+    group: $("f-group").value.trim().slice(0, 60),
+    course: form.course,
+    role: form.role,
+    exp: form.exp,
+    days: DAYS.filter(d => form.days.has(d)),
+    why: why.slice(0, 600),
+    quiz: quiz.result,
+  };
+
+  if (inTelegram) {
+    notify("success");
+    tg.sendData(JSON.stringify(payload)); // работает при открытии кнопкой клавиатуры бота (см. README)
+  } else {
+    $("demo-box").innerHTML = `<pre class="demo">Демо-режим (открыто не в Telegram). Боту ушло бы:\n\n${esc(JSON.stringify(payload, null, 2))}</pre>`;
+    show("s-done");
+  }
+}
+
+$("f-why").addEventListener("input", (e) => { $("why-count").textContent = `${e.target.value.length} / 600`; $("g-why").classList.remove("bad"); });
+$("f-name").addEventListener("input", () => $("g-name").classList.remove("bad"));
+
+renderHome();
+buildPicker($("f-course"), COURSES, "course");
+buildPicker($("f-exp"), EXPS, "exp");
+buildRoleList();
+buildDays();
+show("s-home", false);
+requestAnimationFrame(() => setTimeout(() => document.body.classList.add("ready"), 80));
+</script>
+</body>
+</html>
